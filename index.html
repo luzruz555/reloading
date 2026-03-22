@@ -94,7 +94,7 @@ function BootSequence({ onComplete }) {
         setTimeout(() => {
           setLines(prev => [...prev, { text: "[이로] 모듈 활성화 완료", type: "iro" }]);
           setTimeout(() => {
-            setLines(prev => [...prev, { text: '시스템 재가동 ── "다시 만나서 반가워요, 마스터~!"', type: "iro" }]);
+            setLines(prev => [...prev, { text: '시스템 재가동 ── ', type: "iro" }]);
             setTimeout(onComplete, 2000);
           }, 1000);
         }, 800);
@@ -159,19 +159,12 @@ function Prologue({ onComplete }) {
     { speaker: null, text: "은지가 기대어 잠든 어깨의 무게가 익숙해져 갔다.", bg: "warm" },
     { speaker: null, text: "그리고── 호감도가 100에 도달하던 그 순간.", bg: "tense" },
     { speaker: null, text: "상태창이 깜빡이더니, 천천히 사라지기 시작했다.", bg: "tense" },
-    { speaker: "이로", speakerColor: "#c8b6ff", text: "...어라? 이상하다, 왜 제 손이...", bg: "tense", showIro: true },
-    { speaker: "이로", speakerColor: "#c8b6ff", text: "아하하, 뭐 어때요! 목표 달성이잖아요! ...축하해요.", bg: "tense", showIro: true },
-    { speaker: null, text: "웃고 있었지만── 그 눈은 웃지 않았다.", bg: "tense" },
-    { speaker: null, text: "이로는 점점 흐려지며, 마지막으로 손을 흔들었다.", bg: "dark" },
     { speaker: null, text: "그렇게 ── 상태창도, 이로도 사라졌다.", bg: "dark" },
     { speaker: null, text: "그 뒤로도 히로인들과의 일상은 계속됐다. 웃고, 싸우고, 함께하는 평범한 나날.", bg: "warm" },
     { speaker: null, text: "하지만 가끔, 아무도 없는 곳에서 혼자일 때── 빈 허공을 바라보게 되는 순간이 있었다.", bg: "dark" },
     { speaker: null, text: "그리고 7개월이 흘렀다.\n19살, 고등학교 3학년.", bg: "dark" },
-    { speaker: null, text: "히로인들에게 반강제로 이끌려 가입하게 된 'AI챗 동아리'.", bg: "warm" },
-    { speaker: null, text: "그곳에서 처음 보는 후배 하나── 백나린이 조용히 가입했다.", bg: "warm" },
-    { speaker: null, text: "그리고 ── 그날, 다시 눈앞에 떠오른 반투명한 창.", bg: "tense" },
-    { speaker: "이로", speakerColor: "#c8b6ff", text: "...다시 만나서 반가워요, 마스터. 후후~", bg: "tense", showIro: true },
-    { speaker: null, text: "── 새로운 이야기가, 다시 시작된다.", bg: "dark", final: true },
+    { speaker: null, text: "그리고 ── 개학식 날, 다시 눈앞에 떠오른 반투명한 창.", bg: "tense" },
+    { speaker: null, text: "당신의 연애, 다시 로딩중!", bg: "dark", final: true },
   ];
 
   const currentScene = scenes[sceneIndex];
