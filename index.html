@@ -1,6 +1,29 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>연애 리코딩 중!</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { width: 100%; height: 100%; overflow: hidden; background: #0a0a10; }
+@keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes blink { 0%,50% { opacity: 1; } 51%,100% { opacity: 0; } }
+@keyframes pulse { 0%,100% { opacity: 0.15; } 50% { opacity: 0.35; } }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 2px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.9/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
 
-// ─── 이미지 경로 (/img 폴더에 넣어주세요) ───
 const IMG = {
   bg: "/img/bg.png",
   logo: "/img/logo.png",
@@ -44,14 +67,8 @@ function BootSequence({ onComplete }) {
       const addLine = () => {
         if (i < bootScript.length) {
           const line = bootScript[i];
-          setTimeout(() => {
-            setLines((prev) => [...prev, line]);
-            i++;
-            addLine();
-          }, line.delay);
-        } else {
-          setTimeout(() => setPhase(1), 600);
-        }
+          setTimeout(() => { setLines(prev => [...prev, line]); i++; addLine(); }, line.delay);
+        } else { setTimeout(() => setPhase(1), 600); }
       };
       addLine();
     }
@@ -72,14 +89,11 @@ function BootSequence({ onComplete }) {
   useEffect(() => {
     if (phase === 2) {
       setTimeout(() => {
-        setLines((prev) => [...prev,
-          { text: "───────────────────────────", type: "divider" },
-          { text: "동기화 완료 ── 100%", type: "ok" },
-        ]);
+        setLines(prev => [...prev, { text: "───────────────────────────", type: "divider" }, { text: "동기화 완료 ── 100%", type: "ok" }]);
         setTimeout(() => {
-          setLines((prev) => [...prev, { text: "[이로] 모듈 활성화 완료", type: "iro" }]);
+          setLines(prev => [...prev, { text: "[이로] 모듈 활성화 완료", type: "iro" }]);
           setTimeout(() => {
-            setLines((prev) => [...prev, { text: '시스템 재가동 ── "다시 만나서 반가워요, 마스터~!"', type: "iro" }]);
+            setLines(prev => [...prev, { text: '시스템 재가동 ── "다시 만나서 반가워요, 마스터~!"', type: "iro" }]);
             setTimeout(onComplete, 2000);
           }, 1000);
         }, 800);
@@ -87,11 +101,9 @@ function BootSequence({ onComplete }) {
     }
   }, [phase]);
 
-  useEffect(() => {
-    if (containerRef.current) containerRef.current.scrollTop = containerRef.current.scrollHeight;
-  }, [lines, progress]);
+  useEffect(() => { if (containerRef.current) containerRef.current.scrollTop = containerRef.current.scrollHeight; }, [lines, progress]);
 
-  const typeColor = (t) => ({ ok: "#6ec985", error: "#ff6b6b", warning: "#ffd166", highlight: "#c8b6ff", iro: "#ffffff", divider: "#444" }[t] || "#8a8a9a");
+  const typeColor = t => ({ ok: "#6ec985", error: "#ff6b6b", warning: "#ffd166", highlight: "#c8b6ff", iro: "#ffffff", divider: "#444" }[t] || "#8a8a9a");
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'IBM Plex Mono', 'Noto Sans KR', monospace" }}>
@@ -167,7 +179,7 @@ function Prologue({ onComplete }) {
   useEffect(() => {
     if (showFullText) return;
     if (charIndex < currentText.length) {
-      const timer = setTimeout(() => setCharIndex((c) => c + 1), 40);
+      const timer = setTimeout(() => setCharIndex(c => c + 1), 40);
       return () => clearTimeout(timer);
     }
   }, [charIndex, showFullText, currentText]);
@@ -176,7 +188,7 @@ function Prologue({ onComplete }) {
     if (charIndex < currentText.length && !showFullText) { setShowFullText(true); setCharIndex(currentText.length); return; }
     if (currentScene.final) { setFadeState("out"); setTimeout(onComplete, 1000); return; }
     setFadeState("transition");
-    setTimeout(() => { setSceneIndex((i) => i + 1); setCharIndex(0); setShowFullText(false); setFadeState("in"); }, 300);
+    setTimeout(() => { setSceneIndex(i => i + 1); setCharIndex(0); setShowFullText(false); setFadeState("in"); }, 300);
   }, [charIndex, currentText, showFullText, currentScene, onComplete]);
 
   const displayedText = showFullText ? currentText : currentText.slice(0, charIndex);
@@ -196,7 +208,7 @@ function Prologue({ onComplete }) {
         <div style={{ width: `${((sceneIndex + 1) / scenes.length) * 100}%`, height: "100%", background: "linear-gradient(90deg, #6c5ce7, #c8b6ff)", transition: "width 0.4s ease" }} />
       </div>
 
-      <div style={{ position: "absolute", top: 16, right: 20, fontSize: 12, color: "rgba(255,255,255,0.25)", letterSpacing: 1, zIndex: 10 }} onClick={(e) => { e.stopPropagation(); setFadeState("out"); setTimeout(onComplete, 800); }}>
+      <div style={{ position: "absolute", top: 16, right: 20, fontSize: 12, color: "rgba(255,255,255,0.25)", letterSpacing: 1, zIndex: 10 }} onClick={e => { e.stopPropagation(); setFadeState("out"); setTimeout(onComplete, 800); }}>
         SKIP ▸
       </div>
 
@@ -218,11 +230,6 @@ function Prologue({ onComplete }) {
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes blink { 0%,50% { opacity: 1; } 51%,100% { opacity: 0; } }
-        @keyframes pulse { 0%,100% { opacity: 0.15; } 50% { opacity: 0.35; } }
-      `}</style>
     </div>
   );
 }
@@ -253,8 +260,8 @@ function CharacterIntro({ onComplete }) {
           <h1 style={{ margin: "4px 0 0", fontSize: 22, fontWeight: 700, color: "#e8e4f0", letterSpacing: -0.5 }}>등장인물</h1>
         </div>
         <button onClick={onComplete} style={{ background: "rgba(200,182,255,0.08)", border: "1px solid rgba(200,182,255,0.15)", color: "#c8b6ff", padding: "8px 20px", borderRadius: 6, cursor: "pointer", fontSize: 13, transition: "all 0.2s" }}
-          onMouseOver={(e) => { e.target.style.background = "rgba(200,182,255,0.15)"; }}
-          onMouseOut={(e) => { e.target.style.background = "rgba(200,182,255,0.08)"; }}>
+          onMouseOver={e => { e.target.style.background = "rgba(200,182,255,0.15)"; }}
+          onMouseOut={e => { e.target.style.background = "rgba(200,182,255,0.08)"; }}>
           채팅 시작하기 ▸
         </button>
       </div>
@@ -263,8 +270,8 @@ function CharacterIntro({ onComplete }) {
         <div style={{ width: 280, flexShrink: 0, display: "flex", flexDirection: "column", gap: 6, overflowY: "auto" }}>
           {characters.map((char, i) => (
             <div key={i} onClick={() => setSelectedChar(i)} style={{ padding: "14px 16px", background: selectedChar === i ? `linear-gradient(135deg, ${char.color}15, ${char.color}08)` : "rgba(255,255,255,0.02)", border: `1px solid ${selectedChar === i ? char.color + "30" : "rgba(255,255,255,0.04)"}`, borderRadius: 8, cursor: "pointer", transition: "all 0.25s ease", display: "flex", alignItems: "center", gap: 14 }}
-              onMouseOver={(e) => { if (selectedChar !== i) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
-              onMouseOut={(e) => { if (selectedChar !== i) e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}>
+              onMouseOver={e => { if (selectedChar !== i) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+              onMouseOut={e => { if (selectedChar !== i) e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}>
               <div style={{ width: 42, height: 42, borderRadius: "50%", background: `linear-gradient(135deg, ${char.color}25, ${char.color}10)`, border: `1px solid ${char.color}30`, overflow: "hidden", flexShrink: 0 }}>
                 <img src={char.img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
@@ -355,22 +362,19 @@ function MainMenu({ onStart }) {
 }
 
 // ─── App ───
-export default function App() {
+function App() {
   const [phase, setPhase] = useState(PHASES.MAIN);
-
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { overflow: hidden; background: #0a0a10; }
-        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-      `}</style>
-
+    <React.Fragment>
       {phase === PHASES.MAIN && <MainMenu onStart={() => setPhase(PHASES.PROLOGUE)} />}
       {phase === PHASES.PROLOGUE && <Prologue onComplete={() => setPhase(PHASES.BOOT)} />}
       {phase === PHASES.BOOT && <BootSequence onComplete={() => setPhase(PHASES.CHARACTERS)} />}
       {phase === PHASES.CHARACTERS && <CharacterIntro onComplete={() => {}} />}
-    </>
+    </React.Fragment>
   );
 }
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
