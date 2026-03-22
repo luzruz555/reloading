@@ -1,0 +1,962 @@
+import { useState, useEffect, useRef, useCallback } from "react";
+
+const PHASES = {
+  BOOT: "boot",
+  PROLOGUE: "prologue",
+  CHARACTERS: "characters",
+  MAIN: "main",
+};
+
+// ─── Boot Sequence ───
+function BootSequence({ onComplete }) {
+  const [lines, setLines] = useState([]);
+  const [progress, setProgress] = useState(0);
+  const [phase, setPhase] = useState(0);
+  const containerRef = useRef(null);
+
+  const bootScript = [
+    { text: "SYSTEM_CORE v3.1.7 초기화 중...", delay: 400, type: "system" },
+    { text: "메모리 할당 완료 ── 128MB OK", delay: 300, type: "ok" },
+    { text: "디스플레이 드라이버 로드 중...", delay: 500, type: "system" },
+    { text: "부팅 시퀀스를 시작합니다", delay: 800, type: "highlight" },
+    { text: "───────────────────────────", delay: 200, type: "divider" },
+    { text: "과거 로그 데이터 확인중...", delay: 600, type: "system" },
+    { text: "LOG_2024.dat ── 감지됨", delay: 400, type: "ok" },
+    { text: "LOG_HEROINE_DATA.encrypted ── 감지됨", delay: 400, type: "ok" },
+    { text: "AFFINITY_RECORD.sys ── 감지됨", delay: 300, type: "ok" },
+    { text: "⚠ 오류 발생 ── 데이터 불일치 감지", delay: 900, type: "error" },
+    { text: "⚠ IROS_MODULE.dll ── 연결 끊김 (1년 전)", delay: 700, type: "error" },
+    { text: "강제 데이터 동기화 진행중..", delay: 500, type: "warning" },
+  ];
+
+  useEffect(() => {
+    if (phase === 0) {
+      let i = 0;
+      const addLine = () => {
+        if (i < bootScript.length) {
+          const line = bootScript[i];
+          setTimeout(() => {
+            setLines((prev) => [...prev, line]);
+            i++;
+            addLine();
+          }, line.delay);
+        } else {
+          setTimeout(() => setPhase(1), 600);
+        }
+      };
+      addLine();
+    }
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase === 1) {
+      let p = 0;
+      const interval = setInterval(() => {
+        p += Math.random() * 4 + 1;
+        if (p >= 100) {
+          p = 100;
+          clearInterval(interval);
+          setTimeout(() => setPhase(2), 500);
+        }
+        setProgress(Math.min(Math.floor(p), 100));
+      }, 80);
+      return () => clearInterval(interval);
+    }
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase === 2) {
+      setTimeout(() => {
+        setLines((prev) => [
+          ...prev,
+          { text: "───────────────────────────", type: "divider" },
+          { text: "동기화 완료 ── 100%", type: "ok" },
+        ]);
+        setTimeout(() => {
+          setLines((prev) => [
+            ...prev,
+            { text: "[이로] 모듈 활성화 완료", type: "iro" },
+          ]);
+          setTimeout(() => {
+            setLines((prev) => [
+              ...prev,
+              { text: '시스템 재가동 ── "다시 만나서 반가워요, 마스터~!"', type: "iro" },
+            ]);
+            setTimeout(onComplete, 2000);
+          }, 1000);
+        }, 800);
+      }, 300);
+    }
+  }, [phase]);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [lines, progress]);
+
+  const typeColor = (type) => {
+    switch (type) {
+      case "ok": return "#6ec985";
+      case "error": return "#ff6b6b";
+      case "warning": return "#ffd166";
+      case "highlight": return "#c8b6ff";
+      case "iro": return "#ffffff";
+      case "divider": return "#444";
+      default: return "#8a8a9a";
+    }
+  };
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0,
+      background: "#0a0a0f",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontFamily: "'IBM Plex Mono', 'Noto Sans KR', monospace",
+    }}>
+      <div style={{
+        width: "min(680px, 90vw)", maxHeight: "80vh",
+        background: "linear-gradient(180deg, #0d0d15 0%, #111119 100%)",
+        border: "1px solid #1e1e2e",
+        borderRadius: 8, padding: "28px 32px",
+        boxShadow: "0 0 60px rgba(100, 80, 200, 0.08), inset 0 1px 0 rgba(255,255,255,0.03)",
+        overflow: "hidden", display: "flex", flexDirection: "column",
+      }}>
+        <div style={{
+          fontSize: 11, color: "#555", marginBottom: 16,
+          display: "flex", justifyContent: "space-between",
+          borderBottom: "1px solid #1a1a2a", paddingBottom: 10,
+        }}>
+          <span>SYSTEM_TERMINAL ── v3.1.7</span>
+          <span style={{ color: phase === 2 ? "#6ec985" : "#ffd166" }}>
+            {phase === 2 ? "● ONLINE" : "○ LOADING"}
+          </span>
+        </div>
+
+        <div ref={containerRef} style={{
+          flex: 1, overflowY: "auto", fontSize: 13, lineHeight: 1.8,
+          scrollbarWidth: "thin", scrollbarColor: "#2a2a3a #0d0d15",
+        }}>
+          {lines.map((line, i) => (
+            <div key={i} style={{
+              color: typeColor(line.type),
+              fontWeight: line.type === "iro" ? 600 : 400,
+              textShadow: line.type === "iro" ? "0 0 12px rgba(200,182,255,0.5)" : "none",
+              animation: "fadeSlideIn 0.3s ease-out",
+              fontSize: line.type === "iro" ? 14 : 13,
+            }}>
+              {line.type === "iro" ? `▸ ${line.text}` : `  ${line.text}`}
+            </div>
+          ))}
+
+          {phase === 1 && (
+            <div style={{ marginTop: 12 }}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: 12, color: "#8a8a9a", fontSize: 12,
+              }}>
+                <span>동기화</span>
+                <div style={{
+                  flex: 1, height: 6, background: "#1a1a2a",
+                  borderRadius: 3, overflow: "hidden",
+                }}>
+                  <div style={{
+                    width: `${progress}%`, height: "100%",
+                    background: "linear-gradient(90deg, #6c5ce7, #c8b6ff)",
+                    borderRadius: 3,
+                    transition: "width 0.1s ease",
+                    boxShadow: "0 0 8px rgba(108,92,231,0.4)",
+                  }} />
+                </div>
+                <span style={{ fontVariantNumeric: "tabular-nums", minWidth: 36, textAlign: "right" }}>
+                  {progress}%
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 2px; }
+      `}</style>
+    </div>
+  );
+}
+
+// ─── Prologue (Visual Novel style) ───
+function Prologue({ onComplete }) {
+  const [sceneIndex, setSceneIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [showFullText, setShowFullText] = useState(false);
+  const [fadeState, setFadeState] = useState("in");
+  const typingSpeed = 40;
+
+  const scenes = [
+    {
+      speaker: null,
+      text: "── 1년 전, 어느 평범한 아침.",
+      bg: "dark",
+    },
+    {
+      speaker: null,
+      text: "눈을 떴을 때, 시야에 떠오른 건 반투명한 창 하나였다.",
+      bg: "dark",
+    },
+    {
+      speaker: "???",
+      speakerColor: "#c8b6ff",
+      text: "안녕하세요~! 전 이로에요! 당신의 연애를 도와줄 시스템 도우미랍니다!",
+      bg: "dark",
+    },
+    {
+      speaker: "???",
+      speakerColor: "#c8b6ff",
+      text: "후후~ 긴장하지 마세요. 저만 믿으면 된다구요~!",
+      bg: "dark",
+    },
+    {
+      speaker: null,
+      text: "그렇게 이상한 존재 ── '이로'와의 기묘한 나날이 시작됐다.",
+      bg: "dark",
+    },
+    {
+      speaker: null,
+      text: "눈에만 보이는 상태창. 히로인들의 호감도. 그리고 엉뚱한 조언들.",
+      bg: "dark",
+    },
+    {
+      speaker: "이로",
+      speakerColor: "#c8b6ff",
+      text: "지금이에요! 지금 말 걸면 호감도 +3은 확실하다구요!!",
+      bg: "warm",
+    },
+    {
+      speaker: null,
+      text: "이로의 조언은 반쯤 엉터리였지만── 그래도 덕분에 매일이 조금씩 달라졌다.",
+      bg: "warm",
+    },
+    {
+      speaker: null,
+      text: "유린이의 거친 말투 뒤에 숨은 부끄러움을 알게 됐고,",
+      bg: "warm",
+    },
+    {
+      speaker: null,
+      text: "세아의 장난 섞인 미소가 가끔은 진심이라는 걸 느꼈고,",
+      bg: "warm",
+    },
+    {
+      speaker: null,
+      text: "희율이가 건네는 이상한 말들 속에서 따뜻함을 찾았고,",
+      bg: "warm",
+    },
+    {
+      speaker: null,
+      text: "채은이의 떨리는 목소리가 점점 가까워지는 걸 느꼈고,",
+      bg: "warm",
+    },
+    {
+      speaker: null,
+      text: "은지가 기대어 잠든 어깨의 무게가 익숙해져 갔다.",
+      bg: "warm",
+    },
+    {
+      speaker: null,
+      text: "그리고── 호감도가 100에 도달하던 그 순간.",
+      bg: "tense",
+    },
+    {
+      speaker: null,
+      text: "상태창이 깜빡이더니, 천천히 사라지기 시작했다.",
+      bg: "tense",
+    },
+    {
+      speaker: "이로",
+      speakerColor: "#c8b6ff",
+      text: "...어라? 이상하다, 왜 제 손이...",
+      bg: "tense",
+    },
+    {
+      speaker: "이로",
+      speakerColor: "#c8b6ff",
+      text: "아하하, 뭐 어때요! 목표 달성이잖아요! ...축하해요.",
+      bg: "tense",
+    },
+    {
+      speaker: null,
+      text: "웃고 있었지만── 그 눈은 웃지 않았다.",
+      bg: "tense",
+    },
+    {
+      speaker: null,
+      text: "이로는 점점 흐려지며, 마지막으로 손을 흔들었다.",
+      bg: "dark",
+    },
+    {
+      speaker: null,
+      text: "그렇게 ── 상태창도, 이로도 사라졌다.",
+      bg: "dark",
+    },
+    {
+      speaker: null,
+      text: "그 뒤로도 히로인들과의 일상은 계속됐다. 웃고, 싸우고, 함께하는 평범한 나날.",
+      bg: "warm",
+    },
+    {
+      speaker: null,
+      text: "하지만 가끔, 아무도 없는 곳에서 혼자일 때── 빈 허공을 바라보게 되는 순간이 있었다.",
+      bg: "dark",
+    },
+    {
+      speaker: null,
+      text: "그리고 1년이 흘렀다.\n19살, 고등학교 3학년.",
+      bg: "dark",
+    },
+    {
+      speaker: null,
+      text: "히로인들에게 반강제로 이끌려 가입하게 된 'AI챗 동아리'.",
+      bg: "warm",
+    },
+    {
+      speaker: null,
+      text: "그곳에서 처음 보는 후배 하나── 백나린이 조용히 가입했다.",
+      bg: "warm",
+    },
+    {
+      speaker: null,
+      text: "그리고 ── 그날, 다시 눈앞에 떠오른 반투명한 창.",
+      bg: "tense",
+    },
+    {
+      speaker: "이로",
+      speakerColor: "#c8b6ff",
+      text: "...다시 만나서 반가워요, 마스터. 후후~",
+      bg: "tense",
+    },
+    {
+      speaker: null,
+      text: "── 새로운 이야기가, 다시 시작된다.",
+      bg: "dark",
+      final: true,
+    },
+  ];
+
+  const currentScene = scenes[sceneIndex];
+  const currentText = currentScene?.text || "";
+
+  useEffect(() => {
+    if (showFullText) return;
+    if (charIndex < currentText.length) {
+      const timer = setTimeout(() => setCharIndex((c) => c + 1), typingSpeed);
+      return () => clearTimeout(timer);
+    }
+  }, [charIndex, showFullText, currentText]);
+
+  const handleClick = useCallback(() => {
+    if (charIndex < currentText.length && !showFullText) {
+      setShowFullText(true);
+      setCharIndex(currentText.length);
+      return;
+    }
+    if (currentScene.final) {
+      setFadeState("out");
+      setTimeout(onComplete, 1000);
+      return;
+    }
+    setFadeState("transition");
+    setTimeout(() => {
+      setSceneIndex((i) => i + 1);
+      setCharIndex(0);
+      setShowFullText(false);
+      setFadeState("in");
+    }, 300);
+  }, [charIndex, currentText, showFullText, currentScene, onComplete]);
+
+  const bgGradient = {
+    dark: "radial-gradient(ellipse at 50% 80%, #12121f 0%, #08080e 100%)",
+    warm: "radial-gradient(ellipse at 50% 80%, #1a1520 0%, #0d0a12 100%)",
+    tense: "radial-gradient(ellipse at 50% 80%, #1a1018 0%, #0a070d 100%)",
+  };
+
+  const displayedText = showFullText ? currentText : currentText.slice(0, charIndex);
+
+  return (
+    <div
+      onClick={handleClick}
+      style={{
+        position: "fixed", inset: 0, cursor: "pointer",
+        background: bgGradient[currentScene.bg],
+        transition: "background 0.8s ease, opacity 0.8s ease",
+        opacity: fadeState === "out" ? 0 : 1,
+        display: "flex", flexDirection: "column",
+        fontFamily: "'Noto Sans KR', sans-serif",
+      }}
+    >
+      {/* Background placeholder */}
+      <div style={{
+        position: "absolute", inset: 0,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        opacity: 0.06, fontSize: 14, color: "#fff", letterSpacing: 4,
+        pointerEvents: "none",
+      }}>
+        BACKGROUND IMAGE
+      </div>
+
+      {/* Character image placeholder */}
+      <div style={{
+        position: "absolute", bottom: 180, left: "50%", transform: "translateX(-50%)",
+        width: 300, height: 500,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        pointerEvents: "none",
+      }}>
+        {currentScene.speaker && (
+          <div style={{
+            border: "1px dashed rgba(255,255,255,0.08)",
+            borderRadius: 8, width: "100%", height: "100%",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "rgba(255,255,255,0.08)", fontSize: 12,
+          }}>
+            캐릭터 이미지
+          </div>
+        )}
+      </div>
+
+      {/* Progress bar */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 2,
+        background: "#1a1a2a",
+      }}>
+        <div style={{
+          width: `${((sceneIndex + 1) / scenes.length) * 100}%`,
+          height: "100%",
+          background: "linear-gradient(90deg, #6c5ce7, #c8b6ff)",
+          transition: "width 0.4s ease",
+        }} />
+      </div>
+
+      {/* Skip */}
+      <div style={{
+        position: "absolute", top: 16, right: 20, fontSize: 12,
+        color: "rgba(255,255,255,0.25)", letterSpacing: 1,
+        zIndex: 10,
+      }}
+        onClick={(e) => { e.stopPropagation(); setFadeState("out"); setTimeout(onComplete, 800); }}
+      >
+        SKIP ▸
+      </div>
+
+      {/* Dialogue box */}
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0,
+        background: "linear-gradient(180deg, rgba(10,10,18,0.0) 0%, rgba(10,10,18,0.95) 30%)",
+        padding: "60px 0 0 0",
+      }}>
+        <div style={{
+          maxWidth: 720, margin: "0 auto",
+          padding: "0 32px 40px",
+        }}>
+          {currentScene.speaker && (
+            <div style={{
+              fontSize: 13, fontWeight: 500,
+              color: currentScene.speakerColor || "#aaa",
+              marginBottom: 8, letterSpacing: 1,
+              textShadow: `0 0 12px ${currentScene.speakerColor || "#aaa"}40`,
+            }}>
+              ◈ {currentScene.speaker}
+            </div>
+          )}
+          <div style={{
+            background: "rgba(15,15,25,0.85)",
+            border: "1px solid rgba(100,80,200,0.12)",
+            borderRadius: 8,
+            padding: "20px 24px",
+            minHeight: 60,
+            backdropFilter: "blur(8px)",
+          }}>
+            <p style={{
+              fontSize: 15.5, lineHeight: 1.9,
+              color: currentScene.speaker ? "#e8e4f0" : "#9a95a8",
+              fontWeight: currentScene.speaker ? 400 : 300,
+              margin: 0, whiteSpace: "pre-wrap",
+              fontStyle: currentScene.speaker ? "normal" : "italic",
+            }}>
+              {displayedText}
+              {charIndex < currentText.length && !showFullText && (
+                <span style={{
+                  display: "inline-block", width: 2, height: 16,
+                  background: "#c8b6ff", marginLeft: 2,
+                  animation: "blink 0.8s infinite",
+                  verticalAlign: "text-bottom",
+                }} />
+              )}
+            </p>
+          </div>
+          <div style={{
+            textAlign: "center", marginTop: 12,
+            fontSize: 11, color: "rgba(255,255,255,0.15)",
+            animation: charIndex >= currentText.length || showFullText ? "pulse 1.5s infinite" : "none",
+          }}>
+            {(charIndex >= currentText.length || showFullText) && "클릭하여 계속 ▸"}
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes blink { 0%,50% { opacity: 1; } 51%,100% { opacity: 0; } }
+        @keyframes pulse { 0%,100% { opacity: 0.15; } 50% { opacity: 0.35; } }
+      `}</style>
+    </div>
+  );
+}
+
+// ─── Character Intro ───
+function CharacterIntro({ onComplete }) {
+  const [selectedChar, setSelectedChar] = useState(null);
+  const [fadeIn, setFadeIn] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => setFadeIn(true), 100);
+  }, []);
+
+  const characters = [
+    {
+      name: "임유린",
+      age: "19세 · 3학년",
+      color: "#7dd3fc",
+      accent: "#38bdf8",
+      tagline: '"뭘봐, 이 찐따야."',
+      desc: "본인을 일진이라 주장하지만 허당끼 가득한 소녀. 거친 말투 뒤에 숨은 부끄러움과 여린 내면의 소유자.",
+      traits: ["허당", "자신감", "여린 내면", "부끄럼쟁이"],
+      role: "AI챗 동아리 부장",
+    },
+    {
+      name: "주세아",
+      age: "19세 · 3학년",
+      color: "#fca5a5",
+      accent: "#f87171",
+      tagline: '"허접~♡ 또 이상한 생각하는거야~?"',
+      desc: "도발적이고 유혹적인 메스가키. 놀리고 조롱하는 걸 즐기지만, 그 안에 숨겨진 츤데레적 진심.",
+      traits: ["메스가키", "도발적", "츤데레", "질투"],
+      role: "동아리원",
+    },
+    {
+      name: "서희율",
+      age: "19세 · 3학년",
+      color: "#c4b5fd",
+      accent: "#a78bfa",
+      tagline: '"난 나무야. 바오밥나무."',
+      desc: "전교 1등의 두뇌를 가졌지만 4차원적 사고방식의 소유자. 과묵하고 무감정해 보이지만 스킨십에 거리낌이 없다.",
+      traits: ["4차원", "과묵", "전교 1등", "스킨십"],
+      role: "동아리원",
+    },
+    {
+      name: "이채은",
+      age: "18세 · 2학년",
+      color: "#f9a8d4",
+      accent: "#f472b6",
+      tagline: '"서.. 선배!! 저랑 카페가실래요..??"',
+      desc: "졸졸 따라다니는 후배. 소심하지만 의외로 적극적이며, 관심을 받기 위해서라면 위험한 일도 마다하지 않는다.",
+      traits: ["얀데레", "집착", "소심", "적극적"],
+      role: "동아리원 · 후배",
+    },
+    {
+      name: "권은지",
+      age: "19세 · 3학년",
+      color: "#d4a574",
+      accent: "#b8860b",
+      tagline: '"아하암.. 너 좋아한다구.."',
+      desc: "학교에서 매일 잠만 자는 귀차니스트. 하지만 자신의 것을 빼앗길 것 같으면 날카로운 한마디를 던진다.",
+      traits: ["귀차니즘", "졸림", "저돌적", "애착"],
+      role: "동아리원",
+    },
+    {
+      name: "백나린",
+      age: "18세 · 2학년",
+      color: "#fde68a",
+      accent: "#fbbf24",
+      tagline: '"저기, 그게... 아니에요, 아무것도..."',
+      desc: "전학 온 첫날, 첫눈에 반해버린 소녀. 내향적이고 소심하지만, 단 한 사람에게만은 용기를 내려 한다.",
+      traits: ["내향적", "소심", "감성적", "첫사랑"],
+      role: "전학생 · 신입 동아리원",
+    },
+    {
+      name: "이로",
+      age: "나이 불명",
+      color: "#e2e8f0",
+      accent: "#c8b6ff",
+      tagline: '"후후~ 역시 저 없이는 안되죠~!"',
+      desc: "오직 당신의 눈에만 보이는 시스템 속 존재. 연애박사를 자칭하지만 실력은 엉터리. 1년 전 사라졌다가 다시 나타났다.",
+      traits: ["수다쟁이", "허당", "호기심", "짝사랑"],
+      role: "시스템 조력자",
+    },
+  ];
+
+  const selected = selectedChar !== null ? characters[selectedChar] : null;
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0,
+      background: "radial-gradient(ellipse at 30% 20%, #15131f 0%, #0a0a10 100%)",
+      fontFamily: "'Noto Sans KR', sans-serif",
+      opacity: fadeIn ? 1 : 0,
+      transition: "opacity 0.8s ease",
+      display: "flex", flexDirection: "column",
+      overflow: "hidden",
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: "28px 32px 16px",
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+      }}>
+        <div>
+          <h2 style={{
+            margin: 0, fontSize: 12, fontWeight: 400,
+            color: "#555", letterSpacing: 3, textTransform: "uppercase",
+          }}>CHARACTER FILE</h2>
+          <h1 style={{
+            margin: "4px 0 0", fontSize: 22, fontWeight: 700,
+            color: "#e8e4f0", letterSpacing: -0.5,
+          }}>등장인물</h1>
+        </div>
+        <button onClick={onComplete} style={{
+          background: "rgba(200,182,255,0.08)",
+          border: "1px solid rgba(200,182,255,0.15)",
+          color: "#c8b6ff", padding: "8px 20px",
+          borderRadius: 6, cursor: "pointer", fontSize: 13,
+          transition: "all 0.2s",
+        }}
+          onMouseOver={(e) => { e.target.style.background = "rgba(200,182,255,0.15)"; }}
+          onMouseOut={(e) => { e.target.style.background = "rgba(200,182,255,0.08)"; }}
+        >
+          시작하기 ▸
+        </button>
+      </div>
+
+      {/* Main content */}
+      <div style={{
+        flex: 1, display: "flex", overflow: "hidden",
+        padding: "0 32px 32px",
+        gap: 24,
+      }}>
+        {/* Character list */}
+        <div style={{
+          width: 280, flexShrink: 0,
+          display: "flex", flexDirection: "column", gap: 6,
+          overflowY: "auto",
+        }}>
+          {characters.map((char, i) => (
+            <div
+              key={i}
+              onClick={() => setSelectedChar(i)}
+              style={{
+                padding: "14px 16px",
+                background: selectedChar === i
+                  ? `linear-gradient(135deg, ${char.color}15, ${char.color}08)`
+                  : "rgba(255,255,255,0.02)",
+                border: `1px solid ${selectedChar === i ? char.color + "30" : "rgba(255,255,255,0.04)"}`,
+                borderRadius: 8, cursor: "pointer",
+                transition: "all 0.25s ease",
+                display: "flex", alignItems: "center", gap: 14,
+              }}
+              onMouseOver={(e) => {
+                if (selectedChar !== i) e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+              }}
+              onMouseOut={(e) => {
+                if (selectedChar !== i) e.currentTarget.style.background = "rgba(255,255,255,0.02)";
+              }}
+            >
+              {/* Avatar placeholder */}
+              <div style={{
+                width: 42, height: 42, borderRadius: "50%",
+                background: `linear-gradient(135deg, ${char.color}25, ${char.color}10)`,
+                border: `1px solid ${char.color}30`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 11, color: char.color, fontWeight: 600,
+                flexShrink: 0,
+              }}>
+                {char.name[0]}
+              </div>
+              <div>
+                <div style={{
+                  fontSize: 14, fontWeight: 600, color: selectedChar === i ? char.color : "#ccc",
+                  transition: "color 0.2s",
+                }}>{char.name}</div>
+                <div style={{ fontSize: 11, color: "#666", marginTop: 2 }}>{char.age}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Detail panel */}
+        <div style={{
+          flex: 1, display: "flex", flexDirection: "column",
+          background: "rgba(255,255,255,0.015)",
+          border: "1px solid rgba(255,255,255,0.04)",
+          borderRadius: 12, overflow: "hidden",
+        }}>
+          {selected ? (
+            <div style={{
+              display: "flex", flex: 1, overflow: "hidden",
+            }} key={selectedChar}>
+              {/* Image placeholder */}
+              <div style={{
+                width: "40%", minWidth: 240,
+                background: `linear-gradient(180deg, ${selected.color}08, transparent)`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                borderRight: "1px solid rgba(255,255,255,0.04)",
+                position: "relative",
+              }}>
+                <div style={{
+                  border: `1px dashed ${selected.color}25`,
+                  borderRadius: 8,
+                  width: "80%", height: "85%",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: `${selected.color}30`, fontSize: 12,
+                  flexDirection: "column", gap: 8,
+                }}>
+                  <div style={{ fontSize: 28, opacity: 0.5 }}>👤</div>
+                  캐릭터 이미지
+                </div>
+              </div>
+
+              {/* Info */}
+              <div style={{
+                flex: 1, padding: "28px 28px", overflowY: "auto",
+                animation: "fadeSlideIn 0.4s ease-out",
+              }}>
+                <div style={{
+                  fontSize: 10, color: selected.accent, letterSpacing: 2,
+                  textTransform: "uppercase", marginBottom: 4,
+                }}>{selected.role}</div>
+                <h2 style={{
+                  fontSize: 28, fontWeight: 700,
+                  color: "#f0ecf8", margin: "0 0 6px",
+                }}>{selected.name}</h2>
+                <div style={{ fontSize: 13, color: "#666", marginBottom: 20 }}>
+                  {selected.age}
+                </div>
+
+                <div style={{
+                  fontSize: 15, color: selected.color,
+                  fontStyle: "italic", lineHeight: 1.6,
+                  padding: "14px 18px",
+                  background: `${selected.color}08`,
+                  borderLeft: `2px solid ${selected.color}40`,
+                  borderRadius: "0 6px 6px 0",
+                  marginBottom: 24,
+                }}>
+                  {selected.tagline}
+                </div>
+
+                <p style={{
+                  fontSize: 14, color: "#9a95a8", lineHeight: 1.8,
+                  margin: "0 0 24px",
+                }}>
+                  {selected.desc}
+                </p>
+
+                <div style={{
+                  display: "flex", flexWrap: "wrap", gap: 6,
+                }}>
+                  {selected.traits.map((t, i) => (
+                    <span key={i} style={{
+                      fontSize: 11, padding: "4px 10px",
+                      background: `${selected.color}10`,
+                      border: `1px solid ${selected.color}20`,
+                      borderRadius: 20, color: selected.color,
+                    }}>
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div style={{
+              flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
+              flexDirection: "column", gap: 12, color: "#444",
+            }}>
+              <div style={{ fontSize: 32, opacity: 0.3 }}>◇</div>
+              <div style={{ fontSize: 13 }}>캐릭터를 선택하세요</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Menu ───
+function MainMenu() {
+  const [hovered, setHovered] = useState(null);
+  const [fadeIn, setFadeIn] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => setFadeIn(true), 100);
+  }, []);
+
+  const menuItems = [
+    { label: "시작하기", sub: "START", icon: "▶" },
+    { label: "불러오기", sub: "LOAD", icon: "◈" },
+    { label: "설정", sub: "CONFIG", icon: "◆" },
+    { label: "갤러리", sub: "GALLERY", icon: "◇" },
+  ];
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0,
+      background: "#0a0a10",
+      fontFamily: "'Noto Sans KR', sans-serif",
+      opacity: fadeIn ? 1 : 0,
+      transition: "opacity 1s ease",
+      overflow: "hidden",
+    }}>
+      {/* BG placeholder */}
+      <div style={{
+        position: "absolute", inset: 0,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        zIndex: 0,
+      }}>
+        <div style={{
+          border: "1px dashed rgba(255,255,255,0.06)",
+          borderRadius: 12, width: "95%", height: "95%",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "rgba(255,255,255,0.06)", fontSize: 13, letterSpacing: 3,
+          flexDirection: "column", gap: 8,
+        }}>
+          <div style={{ fontSize: 14 }}>배경 이미지 영역</div>
+          <div style={{ fontSize: 10 }}>BACKGROUND IMAGE PLACEHOLDER</div>
+        </div>
+      </div>
+
+      {/* Gradient overlay */}
+      <div style={{
+        position: "absolute", inset: 0, zIndex: 1,
+        background: "linear-gradient(90deg, rgba(10,10,16,0.95) 0%, rgba(10,10,16,0.6) 40%, rgba(10,10,16,0.2) 70%, transparent 100%)",
+      }} />
+
+      {/* Title logo placeholder */}
+      <div style={{
+        position: "absolute", top: "8%", left: "5%", zIndex: 2,
+      }}>
+        <div style={{
+          border: "1px dashed rgba(200,182,255,0.15)",
+          borderRadius: 8, padding: "40px 60px",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "rgba(200,182,255,0.2)", fontSize: 12,
+          flexDirection: "column", gap: 8, minWidth: 240,
+        }}>
+          <div style={{ fontSize: 14 }}>타이틀 로고</div>
+          <div style={{ fontSize: 9, letterSpacing: 2 }}>TITLE LOGO</div>
+        </div>
+      </div>
+
+      {/* Character image placeholder */}
+      <div style={{
+        position: "absolute", right: "5%", bottom: 0, zIndex: 2,
+        width: 380, height: "85%",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+      }}>
+        <div style={{
+          border: "1px dashed rgba(255,255,255,0.06)",
+          borderRadius: "8px 8px 0 0",
+          width: "100%", height: "90%",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "rgba(255,255,255,0.06)", fontSize: 12,
+          flexDirection: "column", gap: 8,
+        }}>
+          <div>메인 캐릭터 이미지</div>
+          <div style={{ fontSize: 9 }}>CHARACTER STANDING</div>
+        </div>
+      </div>
+
+      {/* Menu items */}
+      <div style={{
+        position: "absolute", left: "5%", bottom: "12%", zIndex: 3,
+        display: "flex", flexDirection: "column", gap: 4,
+      }}>
+        {menuItems.map((item, i) => (
+          <div
+            key={i}
+            onMouseOver={() => setHovered(i)}
+            onMouseOut={() => setHovered(null)}
+            style={{
+              display: "flex", alignItems: "center", gap: 16,
+              padding: "14px 28px 14px 20px",
+              cursor: "pointer",
+              background: hovered === i ? "rgba(200,182,255,0.06)" : "transparent",
+              borderLeft: hovered === i ? "2px solid #c8b6ff" : "2px solid transparent",
+              borderRadius: "0 6px 6px 0",
+              transition: "all 0.25s ease",
+              transform: hovered === i ? "translateX(8px)" : "translateX(0)",
+            }}
+          >
+            <span style={{
+              fontSize: 14, color: hovered === i ? "#c8b6ff" : "#444",
+              transition: "color 0.2s",
+            }}>{item.icon}</span>
+            <div>
+              <div style={{
+                fontSize: 16, fontWeight: 600,
+                color: hovered === i ? "#e8e4f0" : "#777",
+                transition: "color 0.2s",
+                letterSpacing: 1,
+              }}>{item.label}</div>
+              <div style={{
+                fontSize: 9, color: hovered === i ? "#c8b6ff" : "#333",
+                letterSpacing: 3, marginTop: 2,
+                transition: "color 0.2s",
+              }}>{item.sub}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom info */}
+      <div style={{
+        position: "absolute", bottom: 16, left: 0, right: 0,
+        display: "flex", justifyContent: "center", zIndex: 3,
+        fontSize: 10, color: "#2a2a3a", letterSpacing: 2,
+      }}>
+        ── SYSTEM v3.1.7 ──
+      </div>
+    </div>
+  );
+}
+
+// ─── App Root ───
+export default function App() {
+  const [phase, setPhase] = useState(PHASES.BOOT);
+
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { overflow: hidden; background: #0a0a10; }
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+
+      {phase === PHASES.BOOT && (
+        <BootSequence onComplete={() => setPhase(PHASES.PROLOGUE)} />
+      )}
+      {phase === PHASES.PROLOGUE && (
+        <Prologue onComplete={() => setPhase(PHASES.CHARACTERS)} />
+      )}
+      {phase === PHASES.CHARACTERS && (
+        <CharacterIntro onComplete={() => setPhase(PHASES.MAIN)} />
+      )}
+      {phase === PHASES.MAIN && <MainMenu />}
+    </>
+  );
+}
