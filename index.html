@@ -25,7 +25,7 @@ function BootSequence({ onComplete }) {
     { text: "LOG_HEROINE_DATA.encrypted ── 감지됨", delay: 400, type: "ok" },
     { text: "AFFINITY_RECORD.sys ── 감지됨", delay: 300, type: "ok" },
     { text: "⚠ 오류 발생 ── 데이터 불일치 감지", delay: 900, type: "error" },
-    { text: "⚠ IROS_MODULE.dll ── 연결 끊김 (1년 전)", delay: 700, type: "error" },
+    { text: "⚠ IROS_MODULE.dll ── 연결 끊김 (7개월 전)", delay: 700, type: "error" },
     { text: "강제 데이터 동기화 진행중..", delay: 500, type: "warning" },
   ];
 
@@ -80,7 +80,7 @@ function BootSequence({ onComplete }) {
           setTimeout(() => {
             setLines((prev) => [
               ...prev,
-              { text: '시스템 재가동 ── "다시 만나서 반가워요, 마스터~!"', type: "iro" },
+              { text: '시스템 재가동 ── "다시 만나서 반가워요~!"', type: "iro" },
             ]);
             setTimeout(onComplete, 2000);
           }, 1000);
@@ -277,28 +277,7 @@ function Prologue({ onComplete }) {
       text: "상태창이 깜빡이더니, 천천히 사라지기 시작했다.",
       bg: "tense",
     },
-    {
-      speaker: "이로",
-      speakerColor: "#c8b6ff",
-      text: "...어라? 이상하다, 왜 제 손이...",
-      bg: "tense",
-    },
-    {
-      speaker: "이로",
-      speakerColor: "#c8b6ff",
-      text: "아하하, 뭐 어때요! 목표 달성이잖아요! ...축하해요.",
-      bg: "tense",
-    },
-    {
-      speaker: null,
-      text: "웃고 있었지만── 그 눈은 웃지 않았다.",
-      bg: "tense",
-    },
-    {
-      speaker: null,
-      text: "이로는 점점 흐려지며, 마지막으로 손을 흔들었다.",
-      bg: "dark",
-    },
+    
     {
       speaker: null,
       text: "그렇게 ── 상태창도, 이로도 사라졌다.",
@@ -319,30 +298,13 @@ function Prologue({ onComplete }) {
       text: "그리고 1년이 흘렀다.\n19살, 고등학교 3학년.",
       bg: "dark",
     },
-    {
       speaker: null,
-      text: "히로인들에게 반강제로 이끌려 가입하게 된 'AI챗 동아리'.",
-      bg: "warm",
-    },
-    {
-      speaker: null,
-      text: "그곳에서 처음 보는 후배 하나── 백나린이 조용히 가입했다.",
-      bg: "warm",
-    },
-    {
-      speaker: null,
-      text: "그리고 ── 그날, 다시 눈앞에 떠오른 반투명한 창.",
-      bg: "tense",
-    },
-    {
-      speaker: "이로",
-      speakerColor: "#c8b6ff",
-      text: "...다시 만나서 반가워요, 마스터. 후후~",
+      text: "그리고 ── 지금, 다시 눈앞에 떠오른 반투명한 창.",
       bg: "tense",
     },
     {
       speaker: null,
-      text: "── 새로운 이야기가, 다시 시작된다.",
+      text: "당신의 연애, 다시 로딩중!",
       bg: "dark",
       final: true,
     },
